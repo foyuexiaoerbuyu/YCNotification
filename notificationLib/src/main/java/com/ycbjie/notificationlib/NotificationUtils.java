@@ -24,7 +24,7 @@ import static android.support.v4.app.NotificationCompat.VISIBILITY_SECRET;
  *     blog  : https://www.jianshu.com/p/514eb6193a06
  *     time  : 2018/2/10
  *     desc  : 通知栏工具类
- *     revise:
+ *     revise: 8.0之后service使用该类之前必须调用startForeground方法
  * </pre>
  */
 public class NotificationUtils extends ContextWrapper {
@@ -131,6 +131,44 @@ public class NotificationUtils extends ContextWrapper {
                 build.flags |= flags[a];
             }
         }
+        getManager().notify(notifyId, build);
+    }
+    
+     /**
+     * 构建notifyaction
+     *
+     * @param title   标题
+     * @param content 内容
+     * @param icon    图标
+     * @return notifyaction
+     */
+    public Notification buildNotification(String title, String content, int icon) {
+        Notification build;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            //android 8.0以上需要特殊处理，也就是targetSDKVersion为26以上
+            //通知用到NotificationCompat()这个V4库中的方法。但是在实际使用时发现书上的代码已经过时并且Android8.0已经不支持这种写法
+            Notification.Builder builder = getChannelNotification(title, content, icon);
+            build = builder.build();
+        } else {
+            NotificationCompat.Builder builder = getNotificationCompat(title, content, icon);
+            build = builder.build();
+        }
+        if (flags != null && flags.length > 0) {
+            for (int flag : flags) {
+                build.flags |= flag;
+            }
+        }
+        return build;
+    }
+
+    /**
+     * 该方法搭配buildNotification()方法使用
+     *
+     * @param notifyId id
+     * @param build    notifyaction
+     * @see NotificationUtils#buildNotification(String title, String content, int icon);
+     */
+    public void notification(int notifyId, Notification build) {
         getManager().notify(notifyId, build);
     }
 
